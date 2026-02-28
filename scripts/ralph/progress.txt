@@ -1,0 +1,20 @@
+## Codebase Patterns
+- Project is a Node.js/TypeScript CLI tool using ESM modules (`"type": "module"`)
+- Build: `npm run build` (tsc), Typecheck: `npm run typecheck`, Dev: `npx tsx src/index.ts`
+- Source files in `src/`, compiled output to `dist/`
+- tsconfig uses `"module": "NodeNext"`, `"moduleResolution": "NodeNext"`
+
+# Ralph Progress Log
+Started: Fri Feb 27 21:15:29 CST 2026
+---
+
+## 2026-02-27 - US-001
+- Implemented project scaffold: package.json with prd-gen bin entry, tsconfig.json, src/index.ts entry point
+- Initialized git repo and created branch ralph/prd-gen-cli
+- Files changed: package.json, tsconfig.json, src/index.ts, .gitignore, package-lock.json
+- **Learnings for future iterations:**
+  - Project uses ESM (`"type": "module"`), so imports need `.js` extension in TypeScript source
+  - TypeScript module setting is `NodeNext` which requires explicit file extensions
+  - Dev runner is `tsx` (in devDependencies), use `npx tsx src/index.ts` for running during dev
+  - Typecheck with `npm run typecheck` (tsc --noEmit)
+---
