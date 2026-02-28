@@ -194,6 +194,48 @@ const HTML_PAGE = `<!DOCTYPE html>
       background: rgba(0,0,0,0.04);
       outline: 2px solid rgba(255,45,85,0.2);
     }
+
+    .action-area {
+      display: flex;
+      justify-content: center;
+      margin-top: 40px;
+    }
+
+    .action-btn {
+      border: none;
+      border-radius: 12px;
+      padding: 14px 40px;
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .action-btn:hover { opacity: 0.85; }
+
+    .save-btn {
+      background: #FF2D55;
+      color: #FFFFFF;
+    }
+
+    .next-btn {
+      background: #E5E5EA;
+      color: #8E8E93;
+    }
+
+    .spinner-ring {
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255,45,85,0.25);
+      border-top-color: #FF2D55;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: inline-block;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
@@ -204,6 +246,7 @@ const HTML_PAGE = `<!DOCTYPE html>
       let stories = [];
       let currentIndex = 0;
       let dirty = false;
+      let saving = false;
 
       function render() {
         if (stories.length === 0) {
@@ -235,6 +278,10 @@ const HTML_PAGE = `<!DOCTYPE html>
           return \`<button class="priority-btn\${sel}" data-priority="\${n}">\${n}</button>\`;
         }).join('');
 
+        const actionHtml = saving
+          ? \`<div class="action-area"><span class="spinner-ring"></span></div>\`
+          : \`<div class="action-area"><button class="action-btn \${dirty ? 'save-btn' : 'next-btn'}" id="actionBtn">\${dirty ? 'Save' : 'Next story'}</button></div>\`;
+
         app.innerHTML = \`
           <div class="card">
             \${badgeHtml}
@@ -242,6 +289,7 @@ const HTML_PAGE = `<!DOCTYPE html>
             <div class="story-title" contenteditable="true" id="titleField" spellcheck="false">\${escapeHtml(title)}</div>
             <div class="story-description" contenteditable="true" id="descField">\${escapeHtml(description)}</div>
             <div class="priority-buttons">\${buttonsHtml}</div>
+            \${actionHtml}
           </div>
         \`;
 
@@ -275,6 +323,35 @@ const HTML_PAGE = `<!DOCTYPE html>
             if (e.key === 'Escape') { descField.blur(); }
           });
         }
+
+        var actionBtn = document.getElementById('actionBtn');
+        if (actionBtn) {
+          if (dirty) {
+            actionBtn.addEventListener('click', function() {
+              saving = true;
+              render();
+              fetch('/api/stories', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(stories)
+              }).then(function() {
+                dirty = false;
+                saving = false;
+                render();
+              }).catch(function() {
+                saving = false;
+                render();
+              });
+            });
+          } else {
+            actionBtn.addEventListener('click', function() {
+              if (currentIndex < stories.length - 1) {
+                currentIndex++;
+              }
+              render();
+            });
+          }
+        }
       }
 
       function escapeHtml(str) {
@@ -296,7 +373,10 @@ const HTML_PAGE = `<!DOCTYPE html>
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(stories)
-        }).then(() => render());
+        }).then(function() {
+          dirty = false;
+          render();
+        });
       }
 
       fetch('/api/stories')
