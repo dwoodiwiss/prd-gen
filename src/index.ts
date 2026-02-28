@@ -130,6 +130,51 @@ const HTML_PAGE = `<!DOCTYPE html>
     }
 
     .add-btn:hover { opacity: 0.85; }
+
+    .priority-badge {
+      position: absolute;
+      top: 20px;
+      left: 24px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #FF2D55;
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .priority-badge.empty {
+      background: #E5E5EA;
+    }
+
+    .priority-buttons {
+      display: flex;
+      gap: 8px;
+      margin-top: 32px;
+      flex-wrap: wrap;
+    }
+
+    .priority-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: none;
+      background: #E5E5EA;
+      color: #8E8E93;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .priority-btn:hover, .priority-btn.selected {
+      background: #FF2D55;
+      color: #FFFFFF;
+    }
   </style>
 </head>
 <body>
@@ -139,6 +184,7 @@ const HTML_PAGE = `<!DOCTYPE html>
       const app = document.getElementById('app');
       let stories = [];
       let currentIndex = 0;
+      let dirty = false;
 
       function render() {
         if (stories.length === 0) {
@@ -157,16 +203,36 @@ const HTML_PAGE = `<!DOCTYPE html>
         const story = stories[currentIndex];
         const title = story.title || '';
         const description = story.description || '';
+        const priority = story.priority != null ? story.priority : null;
         const x = currentIndex + 1;
         const y = stories.length;
 
+        const badgeHtml = priority !== null
+          ? \`<span class="priority-badge">\${priority}</span>\`
+          : \`<span class="priority-badge empty"></span>\`;
+
+        const buttonsHtml = [1,2,3,4,5,6,7,8,9,10].map(function(n) {
+          const sel = priority === n ? ' selected' : '';
+          return \`<button class="priority-btn\${sel}" data-priority="\${n}">\${n}</button>\`;
+        }).join('');
+
         app.innerHTML = \`
           <div class="card">
+            \${badgeHtml}
             <span class="story-counter">Story \${x} / \${y}</span>
             <div class="story-title">\${escapeHtml(title)}</div>
             <div class="story-description">\${escapeHtml(description)}</div>
+            <div class="priority-buttons">\${buttonsHtml}</div>
           </div>
         \`;
+
+        document.querySelectorAll('.priority-btn').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            stories[currentIndex].priority = parseInt(btn.getAttribute('data-priority'), 10);
+            dirty = true;
+            render();
+          });
+        });
       }
 
       function escapeHtml(str) {
