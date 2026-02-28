@@ -130,31 +130,23 @@ const HTML_PAGE = `<!DOCTYPE html>
 
     .add-btn:hover { opacity: 0.85; }
 
-    .priority-badge {
-      position: absolute;
-      top: 20px;
-      left: 24px;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: #FF2D55;
-      color: #FFFFFF;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-      font-weight: 700;
-    }
-
-    .priority-badge.empty {
-      background: #E5E5EA;
-    }
-
     .priority-buttons {
       display: flex;
       gap: 8px;
       margin-top: 32px;
+      align-items: center;
+    }
+
+    .priority-btns-left {
+      display: flex;
+      gap: 8px;
       flex-wrap: wrap;
+    }
+
+    .priority-btns-right {
+      display: flex;
+      gap: 8px;
+      margin-left: auto;
     }
 
     .priority-btn {
@@ -266,64 +258,31 @@ const HTML_PAGE = `<!DOCTYPE html>
       font-weight: 600;
     }
 
-    .card-add-btn {
-      position: absolute;
-      top: -14px;
-      left: -14px;
-      width: 32px;
-      height: 32px;
+    .story-action-btn {
+      width: 44px;
+      height: 44px;
       border-radius: 50%;
-      background: #FF2D55;
-      color: #FFFFFF;
       border: none;
-      font-size: 22px;
-      line-height: 1;
+      background: #E5E5EA;
+      color: #8E8E93;
+      font-size: 18px;
+      font-weight: 600;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       opacity: 0;
-      transition: opacity 0.15s;
-      z-index: 10;
-      box-shadow: 0 2px 8px rgba(255,45,85,0.35);
+      transition: background 0.15s, color 0.15s, opacity 0.15s;
     }
 
-    .card:hover .card-add-btn {
+    .card:hover .story-action-btn {
       opacity: 1;
     }
 
-    .card-add-btn:hover {
-      opacity: 1 !important;
-      transform: scale(1.1);
-    }
-
-    .card-delete-btn {
-      position: absolute;
-      top: -14px;
-      right: -14px;
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
+    .story-action-btn:hover {
       background: #FF2D55;
       color: #FFFFFF;
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-      transition: opacity 0.15s;
-      z-index: 10;
-      box-shadow: 0 2px 8px rgba(255,45,85,0.35);
-    }
-
-    .card:hover .card-delete-btn {
-      opacity: 1;
-    }
-
-    .card-delete-btn:hover {
       opacity: 1 !important;
-      transform: scale(1.1);
     }
 
     .confirm-overlay {
@@ -513,10 +472,6 @@ const HTML_PAGE = `<!DOCTYPE html>
         const x = currentIndex + 1;
         const y = stories.length;
 
-        const badgeHtml = priority !== null
-          ? \`<span class="priority-badge">\${priority}</span>\`
-          : \`<span class="priority-badge empty"></span>\`;
-
         const buttonsHtml = [1,2,3,4,5,6,7,8,9,10].map(function(n) {
           const sel = priority === n ? ' selected' : '';
           return \`<button class="priority-btn\${sel}" data-priority="\${n}">\${n}</button>\`;
@@ -552,13 +507,16 @@ const HTML_PAGE = `<!DOCTYPE html>
           <div class="card-stack">
             \${ghostHtml}
             <div class="card">
-              <button class="card-add-btn" id="addStoryBtn" title="Add story before this one">+</button>
-              <button class="card-delete-btn" id="deleteStoryBtn" title="Delete this story"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M1 3.5h12"/><path d="M4.5 3.5v-2a.5.5 0 01.5-.5h4a.5.5 0 01.5.5v2"/><path d="M2.5 3.5l.75 8.5a.75.75 0 00.75.5h6a.75.75 0 00.75-.5l.75-8.5"/><path d="M5.5 6.5v4M8.5 6.5v4"/></svg></button>
-              \${badgeHtml}
               <span class="story-counter">Story \${x} / \${y}</span>
               <div class="story-title" contenteditable="true" id="titleField" spellcheck="false">\${escapeHtml(title)}</div>
               <div class="story-description" contenteditable="true" id="descField">\${escapeHtml(description)}</div>
-              <div class="priority-buttons">\${buttonsHtml}</div>
+              <div class="priority-buttons">
+                <div class="priority-btns-left">\${buttonsHtml}</div>
+                <div class="priority-btns-right">
+                  <button class="story-action-btn" id="addStoryBtn" title="Add story before this one">+</button>
+                  <button class="story-action-btn" id="deleteStoryBtn" title="Delete this story"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M1 3.5h12"/><path d="M4.5 3.5v-2a.5.5 0 01.5-.5h4a.5.5 0 01.5.5v2"/><path d="M2.5 3.5l.75 8.5a.75.75 0 00.75.5h6a.75.75 0 00.75-.5l.75-8.5"/><path d="M5.5 6.5v4M8.5 6.5v4"/></svg></button>
+                </div>
+              </div>
               \${actionHtml}
             </div>
           </div>
