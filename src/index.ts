@@ -265,6 +265,37 @@ const HTML_PAGE = `<!DOCTYPE html>
       font-size: 12px;
       font-weight: 600;
     }
+
+    .card-add-btn {
+      position: absolute;
+      top: -14px;
+      left: -14px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #FF2D55;
+      color: #FFFFFF;
+      border: none;
+      font-size: 22px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.15s;
+      z-index: 10;
+      box-shadow: 0 2px 8px rgba(255,45,85,0.35);
+    }
+
+    .card:hover .card-add-btn {
+      opacity: 1;
+    }
+
+    .card-add-btn:hover {
+      opacity: 1 !important;
+      transform: scale(1.1);
+    }
   </style>
 </head>
 <body>
@@ -336,6 +367,7 @@ const HTML_PAGE = `<!DOCTYPE html>
           <div class="card-stack">
             \${ghostHtml}
             <div class="card">
+              <button class="card-add-btn" id="addStoryBtn" title="Add story before this one">+</button>
               \${badgeHtml}
               <span class="story-counter">Story \${x} / \${y}</span>
               <div class="story-title" contenteditable="true" id="titleField" spellcheck="false">\${escapeHtml(title)}</div>
@@ -345,6 +377,11 @@ const HTML_PAGE = `<!DOCTYPE html>
             </div>
           </div>
         \`;
+
+        var addStoryBtn = document.getElementById('addStoryBtn');
+        if (addStoryBtn) {
+          addStoryBtn.addEventListener('click', addStoryBefore);
+        }
 
         document.querySelectorAll('.priority-btn').forEach(function(btn) {
           btn.addEventListener('click', function() {
@@ -418,6 +455,13 @@ const HTML_PAGE = `<!DOCTYPE html>
       function addStory() {
         const newStory = { title: 'New Item', description: 'Describe here\u2026', priority: null };
         stories.splice(currentIndex, 0, newStory);
+        saveAndRender();
+      }
+
+      function addStoryBefore() {
+        const newStory = { title: 'New Item', description: 'Describe here\u2026', priority: null };
+        stories.splice(currentIndex, 0, newStory);
+        currentIndex++;
         saveAndRender();
       }
 
