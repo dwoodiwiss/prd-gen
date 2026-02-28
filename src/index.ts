@@ -45,10 +45,164 @@ const HTML_PAGE = `<!DOCTYPE html>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>prd-gen</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #F2F2F7;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #app {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .card {
+      position: relative;
+      background: #FFFFFF;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06);
+      width: 100%;
+      max-width: 800px;
+      padding: 48px 56px 56px;
+    }
+
+    .story-counter {
+      position: absolute;
+      top: 20px;
+      right: 24px;
+      font-size: 13px;
+      color: #8E8E93;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+    }
+
+    .story-title {
+      font-size: 48px;
+      font-weight: 700;
+      color: #000000;
+      line-height: 1.1;
+      margin-top: 8px;
+      margin-bottom: 24px;
+      word-break: break-word;
+    }
+
+    .story-description {
+      font-size: 20px;
+      color: #333333;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 0;
+    }
+
+    .empty-state p {
+      font-size: 22px;
+      color: #333333;
+      margin-bottom: 24px;
+    }
+
+    .add-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #FF2D55;
+      color: #FFFFFF;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 28px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .add-btn:hover { opacity: 0.85; }
+  </style>
 </head>
 <body>
-  <h1>prd-gen</h1>
-  <p>PRD review tool loading...</p>
+  <div id="app"></div>
+  <script>
+    (function() {
+      const app = document.getElementById('app');
+      let stories = [];
+      let currentIndex = 0;
+
+      function render() {
+        if (stories.length === 0) {
+          app.innerHTML = \`
+            <div class="card">
+              <div class="empty-state">
+                <p>No stories to review.</p>
+                <button class="add-btn" id="addBtn">+ Add</button>
+              </div>
+            </div>
+          \`;
+          document.getElementById('addBtn').addEventListener('click', addStory);
+          return;
+        }
+
+        const story = stories[currentIndex];
+        const title = story.title || '';
+        const description = story.description || '';
+        const x = currentIndex + 1;
+        const y = stories.length;
+
+        app.innerHTML = \`
+          <div class="card">
+            <span class="story-counter">Story \${x} / \${y}</span>
+            <div class="story-title">\${escapeHtml(title)}</div>
+            <div class="story-description">\${escapeHtml(description)}</div>
+          </div>
+        \`;
+      }
+
+      function escapeHtml(str) {
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      function addStory() {
+        const newStory = { title: 'New Item', description: 'Describe here\u2026', priority: null };
+        stories.splice(currentIndex, 0, newStory);
+        saveAndRender();
+      }
+
+      function saveAndRender() {
+        fetch('/api/stories', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(stories)
+        }).then(() => render());
+      }
+
+      fetch('/api/stories')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          stories = Array.isArray(data) ? data : [];
+          render();
+        })
+        .catch(function() {
+          stories = [];
+          render();
+        });
+    })();
+  </script>
 </body>
 </html>`;
 
