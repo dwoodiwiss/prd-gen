@@ -1,0 +1,118 @@
+## 2026-02-27 - US-011
+- What was implemented: End-of-review summary screen. Added `showSummary`, `createdCount`, `deletedCount` state variables. Last story renders a dimmed 'Finish' button (`.finish-btn`). Clicking Finish sets `showSummary = true` and renders a summary card showing "Good job! You've reviewed all stories." with Reviewed/Created/Deleted stat counters and an "Add new story" button. `addStoryAtEnd()` appends to end and exits summary view. `createdCount` incremented in all add functions; `deletedCount` in `deleteStory()`. Keyboard handler returns early when `showSummary` is true.
+- Files changed: src/index.ts (CSS: `.finish-btn`, `.summary-state`, `.summary-check`, `.summary-heading`, `.summary-subheading`, `.summary-stats`, `.summary-stat-value`, `.summary-stat-label`; state: `showSummary`, `createdCount`, `deletedCount`; render(): summary branch before story rendering; actionHtml: isLastStory detection; actionBtn click: shows summary on last story; addStory/addStoryBefore: increment createdCount; new addStoryAtEnd(); deleteStory: increment deletedCount; handleKeyDown: guard against showSummary)
+- **Learnings for future iterations:**
+  - Place the summary screen check early in render() (after empty-state, before story rendering) so it short-circuits cleanly
+  - `isLastStory` local var in render() drives both the Finish button style (`.finish-btn`) and the Finish click handler to set `showSummary = true`
+  - Summary uses same `.card-stack` + `.card` wrapper as normal view for consistent layout/centering
+  - `addStoryAtEnd()` must reset `showSummary = false` before calling `saveAndRender()` so the new story card renders instead of the summary
+  - Guard keyboard shortcuts with `|| showSummary` check so number keys don't act on a nonexistent `stories[currentIndex]` from summary view
+---
+
+## 2026-02-27 - US-010
+- What was implemented: Global `keydown` event listener added once inside the IIFE (via `document.addEventListener`). `isEditingText()` helper checks `document.activeElement` tag/contenteditable to block shortcuts while editing. Shortcuts: 1–9 set priority; 0 sets priority 10; Enter/Space clicks actionBtn (save or next); Backspace/Delete opens delete confirm; N calls addStoryBefore(); Esc closes dialog or blurs active element. All shortcuts except Esc are no-ops when `isEditingText()` returns true or `saving` is true.
+- Files changed: src/index.ts (added `isEditingText()` + `handleKeyDown()` functions and `document.addEventListener('keydown', handleKeyDown)` inside IIFE)
+- **Learnings for future iterations:**
+  - Add global keyboard handler once with `document.addEventListener('keydown', fn)` inside the IIFE — closure gives access to all state variables without re-registering on each render
+  - `isEditingText()` checks `document.activeElement.tagName` (input/textarea) AND `getAttribute('contenteditable') === 'true'` to cover both cases
+  - Guard action shortcuts (Enter, Space, Backspace, N) with `!saving` to avoid double-firing during a fetch
+  - `e.preventDefault()` on Space/Enter prevents page scroll or form submission
+  - Esc is the only shortcut that works even when editing text — it closes the dialog first, then blurs the active field if no dialog is open
+---
+
+## 2026-02-27 - US-009
+- What was implemented: Red trash icon button at top-right corner of card (position: absolute; top: -14px; right: -14px; 32px circle), hidden by default, shown on `.card:hover`. Clicking shows a fixed-overlay confirmation dialog with 'Delete this story? No undo.' text and Delete/Cancel buttons. Confirming removes the story at `currentIndex`, adjusts index if at end, then saves via `saveAndRender()`. Cancelling closes dialog. `showDeleteConfirm` boolean state variable controls visibility.
+- Files changed: src/index.ts (CSS: `.card-delete-btn`, `.card:hover .card-delete-btn`, `.card-delete-btn:hover`, `.confirm-overlay`, `.confirm-dialog`, `.confirm-dialog p`, `.confirm-actions`, `.confirm-delete-btn`, `.confirm-cancel-btn`; state: `showDeleteConfirm`; HTML: deleteStoryBtn button with SVG icon inside .card; conditional overlay HTML; JS: deleteStoryBtn/confirmDeleteBtn/confirmCancelBtn event listeners; `deleteStory()` function)
+- **Learnings for future iterations:**
+  - Confirmation dialog is a fixed overlay (position: fixed; inset: 0; z-index: 100) — works regardless of DOM position
+  - Reset `showDeleteConfirm = false` BEFORE calling `deleteStory()` or `render()` to avoid the dialog re-appearing after re-render
+  - After splicing a story, clamp `currentIndex` to `stories.length - 1` if it's now out of bounds
+  - The trash button uses an inline SVG for the icon — style via `stroke="currentColor"` so CSS color applies
+  - Conditional overlay template: `\${showDeleteConfirm ? \`...\` : ''}` within the outer TypeScript template literal
+---
+
+## 2026-02-27 - US-008
+- What was implemented: '+' icon button at the top-left corner of the card (absolute top:-14px left:-14px, 32px circle), hidden by default, shown on `.card:hover`. Clicking it inserts a new blank story (title 'New Item', description 'Describe here…', priority null) immediately before the current story, then increments `currentIndex` so the view returns to the original story position after save. Empty-state `addStory()` left unchanged; new `addStoryBefore()` function handles card-level insertion.
+- Files changed: src/index.ts (CSS: `.card-add-btn`, `.card:hover .card-add-btn`, `.card-add-btn:hover`; HTML: button#addStoryBtn inside .card; JS: addStoryBtn event listener in render(); addStoryBefore() function)
+- **Learnings for future iterations:**
+  - To show an element only on parent hover: set `opacity: 0` on child and `opacity: 1` on `.parent:hover .child`
+  - Place the '+' button at `position: absolute; top: -14px; left: -14px; z-index: 10` so it overlaps the card corner without conflicting with the priority badge (top: 20px; left: 24px)
+  - Keep `addStory()` (empty state) and `addStoryBefore()` (card button) separate — the empty-state case must keep currentIndex at 0, while the card case increments currentIndex to return to original position
+  - `currentIndex++` must happen BEFORE `saveAndRender()` so the post-save render() shows the original story
+---
+
+## 2026-02-27 - US-007
+- What was implemented: Fanned ghost card stack behind the current card. Remaining stories after current index are counted; 1–5 shows all as ghost cards, 6–15 shows 5 + overflow badge, 16+ shows 3 + overflow badge. Ghost cards rendered as absolutely-positioned divs inside a `.card-stack` wrapper with rotation transforms (transform-origin: center 90%) — furthest ghost is most rotated. Overflow badge shows "+N" on the furthest ghost card.
+- Files changed: src/index.ts (CSS: `.card-stack`, `.card-ghost`, `.stack-overflow-badge`; removed `max-width` from `.card` and moved to `.card-stack`; render() builds ghostHtml loop and wraps main card in `.card-stack`)
+- **Learnings for future iterations:**
+  - Ghost cards use `position: absolute; top:0; left:0; right:0; bottom:0` within `.card-stack` — they size automatically to match the main card
+  - `transform-origin: center 90%` makes cards rotate around a point near the bottom, causing upper portions to fan out from behind the main card
+  - Ghost cards rendered first in DOM (lower z-index by natural stacking) so main card (rendered last, no explicit z-index needed) appears on top
+  - The `rotationSets` object maps `visibleGhosts` count → array of per-card rotation degrees (largest first = furthest ghost)
+  - Moving `max-width: 800px` from `.card` to `.card-stack` ensures ghost cards use the same width constraint
+---
+
+## 2026-02-27 - US-006
+- What was implemented: Save button (red #FF2D55) shown when dirty; grey 'Next story' button when clean. Clicking Save POSTs stories to /api/stories, shows a thin red spinner during write, then resets dirty and re-renders. Clicking Next story advances currentIndex by 1 (clamped at end). saveAndRender() also resets dirty.
+- Files changed: src/index.ts (CSS for action-area/save-btn/next-btn/spinner-ring/@keyframes spin; `saving` state variable; actionHtml in render(); action button event listeners; saveAndRender updated)
+- **Learnings for future iterations:**
+  - `saving` state variable added alongside `dirty` — set true before POST, false in .then/.catch
+  - Show spinner by rendering a `.spinner-ring` span in place of the button (CSS border-top animation)
+  - Action button is either save-btn or next-btn depending on `dirty`; attach appropriate handler after innerHTML is set
+  - saveAndRender() (used by addStory) should also reset dirty=false after successful save
+  - When dirty=false and Next is clicked, currentIndex advances; no need to reset dirty since it's already false
+---
+
+## 2026-02-27 - US-005
+- What was implemented: Inline editing for title and description using `contenteditable="true"` on both divs. Title uses `textContent` for updates; description uses `innerText` to preserve newlines. Input events update `stories[currentIndex]` and set `dirty = true`. Esc key blurs the focused field. CSS adds cursor:text, hover/focus background highlights and a red outline on focus.
+- Files changed: src/index.ts (CSS additions + contenteditable attrs + event listeners in render())
+- **Learnings for future iterations:**
+  - Use `contenteditable="true"` on existing divs — no swap to input/textarea needed
+  - Use `element.textContent` for single-line fields (title); use `element.innerText` for multiline (description) to preserve newlines
+  - Add `spellcheck="false"` on title field to avoid red squiggles under story titles
+  - `input` event fires on every keystroke for contenteditable; `keydown` for Esc handling
+  - `escapeHtml()` still used for initial innerHTML render; safe because browser interprets entities as plain text in contenteditable
+  - When render() is called (e.g. after priority change), contenteditable fields reset from stories array — dirty text changes are safe because `input` event syncs to stories before any click event fires
+---
+
+## Codebase Patterns
+- ESM project: `"type": "module"` in package.json — use `import`/`export`, not `require`/`module.exports`
+- TypeScript with NodeNext module resolution — file extensions matter for imports
+- Use `fileURLToPath(import.meta.url)` + `path.dirname` to get `__dirname` equivalent in ESM
+- PRD data lives in `prd.json` at `process.cwd()` with shape `{ userStories: [...] }`
+- No external runtime dependencies (no Express, no open package) — use Node native modules
+
+- HTML UI is embedded as a template literal in `HTML_PAGE` const in src/index.ts — all frontend code lives inline there
+- Use `escapeHtml()` in JS to prevent XSS when rendering story content into innerHTML
+
+---
+
+## 2026-02-27 - US-002
+- What was implemented: Native HTTP server using Node's `http` module. Serves GET / (HTML page), GET /api/stories (reads prd.json), POST /api/stories (writes prd.json). Opens browser via child_process exec on start. Handles SIGINT for graceful shutdown.
+- Files changed: src/index.ts (full rewrite)
+- **Learnings for future iterations:**
+  - prd.json shape: `{ userStories: [...] }` — read/write via `data.userStories`, not root array
+  - Browser open: platform-specific commands via `process.platform` (darwin=open, win32=start, linux=xdg-open)
+  - POST body: collect chunks with `req.on('data')`, parse in `req.on('end')`
+  - TypeScript: type `chunk` as `Buffer` in data event to satisfy strict mode
+---
+
+## 2026-02-27 - US-003
+- What was implemented: Full story card UI replacing the placeholder HTML. Centered 800px card with soft shadow, 48px bold title, 20px description, Story X/Y counter top-right. Empty state shows "No stories to review." with Add button.
+- Files changed: src/index.ts (HTML_PAGE replaced with full SPA)
+- **Learnings for future iterations:**
+  - All frontend code is inline in the `HTML_PAGE` template literal — use template literal escaping carefully (backtick → \\\`, dollar+brace → no conflict if inside JS string literals)
+  - The JS in HTML uses IIFE pattern and fetches `/api/stories` on load; `stories` array and `currentIndex` are module-level state
+  - `escapeHtml()` helper is defined in JS to prevent XSS
+  - The `addStory()` function inserts at `currentIndex` position and calls `saveAndRender()`
+---
+
+## 2026-02-27 - US-004
+- What was implemented: Priority badge (#FF2D55 circle) on card top-left showing current priority or empty grey circle if unset. 10 round priority buttons (1–10) at card bottom; selected button highlighted in #FF2D55, hover also turns #FF2D55. Clicking a button updates `stories[currentIndex].priority` and sets `dirty = true`, then re-renders.
+- Files changed: src/index.ts (CSS additions + render function update + dirty state variable)
+- **Learnings for future iterations:**
+  - `dirty` state variable added at IIFE module level alongside `stories` and `currentIndex`
+  - After setting innerHTML, re-attach event listeners by querying the newly-created DOM elements
+  - Inner JS template literals inside `HTML_PAGE` TypeScript template literal: escape backticks as `\`` and template expressions as `\${}`
+  - Priority buttons use `data-priority` attribute; read with `btn.getAttribute('data-priority')`
+---

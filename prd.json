@@ -1,0 +1,187 @@
+{
+  "project": "prd-gen",
+  "branchName": "ralph/prd-gen-cli",
+  "description": "prd-gen CLI Tool - Single-story-at-a-time PRD review with priority assignment, editing, add/delete; changes saved to prd.json",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Project scaffold and npm package setup",
+      "description": "As a developer, I need a runnable npm package so that users can install and run prd-gen via npx.",
+      "acceptanceCriteria": [
+        "package.json with name 'prd-gen', bin entry pointing to cli entry point",
+        "Entry point file exists and is executable",
+        "Running `node index.js` (or equivalent) does not throw on startup",
+        "Typecheck passes"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-002",
+      "title": "HTTP server that loads prd.json and serves frontend",
+      "description": "As a developer, I need a native http server that reads prd.json and serves a static HTML page so that the browser UI can display stories.",
+      "acceptanceCriteria": [
+        "Server starts on a local port using Node's native `http` module (no Express)",
+        "GET / serves an HTML page",
+        "GET /api/stories returns JSON array from ./prd.json (empty array if file missing)",
+        "POST /api/stories accepts JSON body and writes to ./prd.json",
+        "Browser is opened automatically on start using `open` package or child_process",
+        "Ctrl+C shuts down gracefully",
+        "Typecheck passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-003",
+      "title": "Basic story card UI with title, description and story counter",
+      "description": "As a user, I want to see the current story's title and description in a centered card so that I can review it.",
+      "acceptanceCriteria": [
+        "Page shows a centered container (~800px wide) with a soft shadow on white (#FFFFFF) background",
+        "Current story title shown in ~48px bold black (#000)",
+        "Current story description shown in ~20px #333, multiline",
+        "Top-right corner shows 'Story X / Y' in grey small text",
+        "If prd.json is empty or missing, page shows 'No stories to review.' with an Add button",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 3,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-004",
+      "title": "Priority badge and 1–10 priority selector buttons",
+      "description": "As a user, I want to see the current priority and set a new one by clicking numbered buttons so that I can assign priority quickly.",
+      "acceptanceCriteria": [
+        "Priority badge (#FF2D55 circle) shown on the story card displaying current priority (1–10) or empty if unset",
+        "10 round buttons labelled 1–10 shown at the bottom of the card",
+        "Selected priority button is highlighted in #FF2D55; others are grey",
+        "Hovering a button turns it #FF2D55",
+        "Clicking a button sets that priority and marks the form as dirty",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 4,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-005",
+      "title": "Inline editing for title and description",
+      "description": "As a user, I want to click the title or description to edit them inline so that I can correct or improve story text.",
+      "acceptanceCriteria": [
+        "Clicking the title makes it an editable input/contenteditable field",
+        "Clicking the description makes it an editable textarea/contenteditable field",
+        "Editing either field marks the form as dirty",
+        "Pressing Esc while a field is focused blurs it without reverting changes",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 5,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-006",
+      "title": "Save button and Next story navigation",
+      "description": "As a user, I want a Save button when changes are unsaved and a Next story button when clean so that I can progress through the review.",
+      "acceptanceCriteria": [
+        "When form is clean, bottom-center shows a grey 'Next story' button",
+        "When form is dirty, bottom-center shows a red (#FF2D55 with white text) 'Save' button",
+        "Clicking Save POSTs changes to /api/stories and writes prd.json; shows thin red spinner during write",
+        "After save, button returns to 'Next story'",
+        "Clicking 'Next story' advances to the next story",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 6,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-007",
+      "title": "Fanned story stack behind current card",
+      "description": "As a user, I want to see the remaining stories stacked behind the current card so that I can get a sense of how many are left.",
+      "acceptanceCriteria": [
+        "Stories behind current card are shown as fanned cards",
+        "1–5 remaining: all cards visible in the fan",
+        "6–15 remaining: top 5 cards visible + '+N' label",
+        "16+ remaining: top 3 cards visible + '+N' label",
+        "Fan shrinks as Next is clicked (card count decreases)",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 7,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-008",
+      "title": "Add new story button",
+      "description": "As a user, I want to add a new story before the current one so that I can capture ideas during review.",
+      "acceptanceCriteria": [
+        "A '+' icon appears at the top-left of the card on hover",
+        "Clicking '+' inserts a new blank story immediately before the current story with defaults: title 'New Item', description 'Describe here…', priority null",
+        "After save, view returns to the original story position",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 8,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-009",
+      "title": "Delete story with confirmation",
+      "description": "As a user, I want to delete a story with a confirmation prompt so that I don't accidentally remove stories.",
+      "acceptanceCriteria": [
+        "A red trash icon appears at the top-right of the card on hover",
+        "Clicking trash shows a confirmation dialog with text 'Delete this story? No undo.'",
+        "Confirming deletes the story and saves prd.json immediately",
+        "Cancelling closes the dialog without changes",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 9,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-010",
+      "title": "Keyboard shortcuts",
+      "description": "As a power user, I want keyboard shortcuts for all actions so that I can review stories without touching the mouse.",
+      "acceptanceCriteria": [
+        "Keys 1–9 set priority 1–9 globally (even when not editing text)",
+        "Key 0 sets priority 10 globally",
+        "Enter or Space triggers Save when dirty, or Next story when clean",
+        "Backspace or Delete opens the delete confirmation dialog",
+        "N inserts a new story (same as clicking '+')",
+        "Esc closes any open confirmation dialog, or blurs the currently focused edit field",
+        "Priority keys are ignored when a text input/textarea is focused",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 10,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-011",
+      "title": "End-of-review summary screen",
+      "description": "As a user, I want to see a summary after reviewing all stories so that I know the session is complete.",
+      "acceptanceCriteria": [
+        "After the last story, 'Next story' button becomes a dimmed 'Finish' button",
+        "Clicking Finish shows a summary screen with: 'Good job! You've reviewed all stories.' and counts for Reviewed, Created (new), Deleted",
+        "An 'Add new story' button is still visible on the summary screen and appends to the end",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 11,
+      "passes": true,
+      "notes": ""
+    }
+  ]
+}
