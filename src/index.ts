@@ -175,6 +175,25 @@ const HTML_PAGE = `<!DOCTYPE html>
       background: #FF2D55;
       color: #FFFFFF;
     }
+
+    .story-title[contenteditable], .story-description[contenteditable] {
+      cursor: text;
+      outline: none;
+      border-radius: 8px;
+      padding: 4px 8px;
+      margin-left: -8px;
+      margin-right: -8px;
+      transition: background 0.15s;
+    }
+
+    .story-title[contenteditable]:hover, .story-description[contenteditable]:hover {
+      background: rgba(0,0,0,0.03);
+    }
+
+    .story-title[contenteditable]:focus, .story-description[contenteditable]:focus {
+      background: rgba(0,0,0,0.04);
+      outline: 2px solid rgba(255,45,85,0.2);
+    }
   </style>
 </head>
 <body>
@@ -220,8 +239,8 @@ const HTML_PAGE = `<!DOCTYPE html>
           <div class="card">
             \${badgeHtml}
             <span class="story-counter">Story \${x} / \${y}</span>
-            <div class="story-title">\${escapeHtml(title)}</div>
-            <div class="story-description">\${escapeHtml(description)}</div>
+            <div class="story-title" contenteditable="true" id="titleField" spellcheck="false">\${escapeHtml(title)}</div>
+            <div class="story-description" contenteditable="true" id="descField">\${escapeHtml(description)}</div>
             <div class="priority-buttons">\${buttonsHtml}</div>
           </div>
         \`;
@@ -233,6 +252,29 @@ const HTML_PAGE = `<!DOCTYPE html>
             render();
           });
         });
+
+        var titleField = document.getElementById('titleField');
+        var descField = document.getElementById('descField');
+
+        if (titleField) {
+          titleField.addEventListener('input', function() {
+            stories[currentIndex].title = titleField.textContent || '';
+            dirty = true;
+          });
+          titleField.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') { titleField.blur(); }
+          });
+        }
+
+        if (descField) {
+          descField.addEventListener('input', function() {
+            stories[currentIndex].description = descField.innerText || '';
+            dirty = true;
+          });
+          descField.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') { descField.blur(); }
+          });
+        }
       }
 
       function escapeHtml(str) {
