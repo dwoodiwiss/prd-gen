@@ -610,6 +610,79 @@ const HTML_PAGE = `<!DOCTYPE html>
         });
       }
 
+      function isEditingText() {
+        var el = document.activeElement;
+        if (!el) return false;
+        var tag = el.tagName.toLowerCase();
+        if (tag === 'input' || tag === 'textarea') return true;
+        if (el.getAttribute('contenteditable') === 'true') return true;
+        return false;
+      }
+
+      function handleKeyDown(e) {
+        // Esc: close dialog or blur active field
+        if (e.key === 'Escape') {
+          if (showDeleteConfirm) {
+            showDeleteConfirm = false;
+            render();
+            return;
+          }
+          if (document.activeElement && document.activeElement !== document.body) {
+            document.activeElement.blur();
+          }
+          return;
+        }
+
+        // All other shortcuts are ignored when editing text
+        if (isEditingText()) return;
+
+        // No stories — nothing to act on
+        if (stories.length === 0) return;
+
+        // Priority keys 1–9
+        if (e.key >= '1' && e.key <= '9') {
+          stories[currentIndex].priority = parseInt(e.key, 10);
+          dirty = true;
+          render();
+          return;
+        }
+
+        // Key 0 → priority 10
+        if (e.key === '0') {
+          stories[currentIndex].priority = 10;
+          dirty = true;
+          render();
+          return;
+        }
+
+        // Enter or Space → Save (dirty) or Next story (clean)
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          if (!saving) {
+            var actionBtn = document.getElementById('actionBtn');
+            if (actionBtn) actionBtn.click();
+          }
+          return;
+        }
+
+        // Backspace or Delete → open delete confirmation
+        if (e.key === 'Backspace' || e.key === 'Delete') {
+          if (!saving) {
+            showDeleteConfirm = true;
+            render();
+          }
+          return;
+        }
+
+        // N → insert new story before current
+        if (e.key === 'n' || e.key === 'N') {
+          if (!saving) addStoryBefore();
+          return;
+        }
+      }
+
+      document.addEventListener('keydown', handleKeyDown);
+
       fetch('/api/stories')
         .then(function(r) { return r.json(); })
         .then(function(data) {
