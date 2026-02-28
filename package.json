@@ -4,16 +4,25 @@
   "description": "Single-story-at-a-time PRD review tool",
   "type": "module",
   "bin": {
-    "prd-gen": "./dist/index.js"
+    "prd-gen": "dist/index.js"
   },
   "main": "./dist/index.js",
+  "files": [
+    "dist/",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "tsx src/index.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
   },
-  "keywords": ["prd", "cli", "review"],
+  "keywords": [
+    "prd",
+    "cli",
+    "review"
+  ],
   "license": "MIT",
   "devDependencies": {
     "typescript": "^5.3.3",

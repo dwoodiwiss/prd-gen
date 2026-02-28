@@ -765,6 +765,8 @@ const HTML_PAGE = `<!DOCTYPE html>
 </body>
 </html>`;
 
+const openSockets = new Set<import('net').Socket>();
+
 const server = http.createServer((req, res) => {
   const url = req.url ?? '/';
   const method = req.method ?? 'GET';
@@ -805,6 +807,15 @@ const server = http.createServer((req, res) => {
   res.end(JSON.stringify({ error: 'Not found' }));
 });
 
+// Node's HTTP internals temporarily add a 'close' listener per in-flight request.
+// Raise the limit to avoid the MaxListenersExceededWarning under normal browser traffic.
+server.setMaxListeners(50);
+
+server.on('connection', (socket) => {
+  openSockets.add(socket);
+  socket.on('close', () => openSockets.delete(socket));
+});
+
 server.listen(PORT, () => {
   const url = `http://localhost:${PORT}`;
   console.log(`prd-gen running at ${url}`);
@@ -830,6 +841,9 @@ function openBrowser(url: string): void {
 
 process.on('SIGINT', () => {
   console.log('\nShutting down...');
+  for (const socket of openSockets) {
+    socket.destroy();
+  }
   server.close(() => {
     process.exit(0);
   });

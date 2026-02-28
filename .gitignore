@@ -1,3 +1,11 @@
 node_modules/
 dist/
 *.js.map
+.DS_Store
+
+# Development / project-specific files — belong on ralph/prd-gen-cli, not here
+prd.json
+prd.md
+progress.txt
+product-image.png
+scripts/
