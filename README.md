@@ -2,7 +2,7 @@
 
 A CLI tool for reviewing PRDs (Product Requirements Documents) one user story at a time. Assign priorities, edit stories, add or delete entries — all saved back to `prd.json`.
 
-![prd-gen](https://raw.githubusercontent.com/dwoodiwiss/prd-reader/main/product-image.png)
+![prd-gen](https://raw.githubusercontent.com/dwoodiwiss/prd-gen/ralph/prd-gen-cli/product-image.png)
 
 ## Prerequisites
 
