@@ -1,6 +1,6 @@
 {
   "name": "prd-gen",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Single-story-at-a-time PRD review tool",
   "type": "module",
   "bin": {
