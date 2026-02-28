@@ -71,7 +71,6 @@ const HTML_PAGE = `<!DOCTYPE html>
       border-radius: 16px;
       box-shadow: 0 4px 24px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06);
       width: 100%;
-      max-width: 800px;
       padding: 48px 56px 56px;
     }
 
@@ -236,6 +235,36 @@ const HTML_PAGE = `<!DOCTYPE html>
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
+
+    .card-stack {
+      position: relative;
+      width: 100%;
+      max-width: 800px;
+    }
+
+    .card-ghost {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #FFFFFF;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04);
+      transform-origin: center 90%;
+    }
+
+    .stack-overflow-badge {
+      position: absolute;
+      bottom: 14px;
+      right: 18px;
+      background: rgba(0,0,0,0.10);
+      color: #8E8E93;
+      border-radius: 10px;
+      padding: 2px 9px;
+      font-size: 12px;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
@@ -282,14 +311,38 @@ const HTML_PAGE = `<!DOCTYPE html>
           ? \`<div class="action-area"><span class="spinner-ring"></span></div>\`
           : \`<div class="action-area"><button class="action-btn \${dirty ? 'save-btn' : 'next-btn'}" id="actionBtn">\${dirty ? 'Save' : 'Next story'}</button></div>\`;
 
+        var remaining = stories.length - currentIndex - 1;
+        var visibleGhosts, overflow;
+        if (remaining <= 5) {
+          visibleGhosts = remaining;
+          overflow = 0;
+        } else if (remaining <= 15) {
+          visibleGhosts = 5;
+          overflow = remaining - 5;
+        } else {
+          visibleGhosts = 3;
+          overflow = remaining - 3;
+        }
+        var rotationSets = { 0: [], 1: [3], 2: [5, 2], 3: [6, 3, 1.5], 4: [7, 4.5, 2.5, 1], 5: [8, 5.5, 3.5, 2, 0.5] };
+        var rotations = rotationSets[visibleGhosts] || [];
+        var ghostHtml = '';
+        for (var gi = 0; gi < visibleGhosts; gi++) {
+          var rot = rotations[gi];
+          var badge = (gi === 0 && overflow > 0) ? \`<span class="stack-overflow-badge">+\${overflow}</span>\` : '';
+          ghostHtml += \`<div class="card-ghost" style="transform: rotate(\${rot}deg);">\${badge}</div>\`;
+        }
+
         app.innerHTML = \`
-          <div class="card">
-            \${badgeHtml}
-            <span class="story-counter">Story \${x} / \${y}</span>
-            <div class="story-title" contenteditable="true" id="titleField" spellcheck="false">\${escapeHtml(title)}</div>
-            <div class="story-description" contenteditable="true" id="descField">\${escapeHtml(description)}</div>
-            <div class="priority-buttons">\${buttonsHtml}</div>
-            \${actionHtml}
+          <div class="card-stack">
+            \${ghostHtml}
+            <div class="card">
+              \${badgeHtml}
+              <span class="story-counter">Story \${x} / \${y}</span>
+              <div class="story-title" contenteditable="true" id="titleField" spellcheck="false">\${escapeHtml(title)}</div>
+              <div class="story-description" contenteditable="true" id="descField">\${escapeHtml(description)}</div>
+              <div class="priority-buttons">\${buttonsHtml}</div>
+              \${actionHtml}
+            </div>
           </div>
         \`;
 
