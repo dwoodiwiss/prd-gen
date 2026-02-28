@@ -296,6 +296,96 @@ const HTML_PAGE = `<!DOCTYPE html>
       opacity: 1 !important;
       transform: scale(1.1);
     }
+
+    .card-delete-btn {
+      position: absolute;
+      top: -14px;
+      right: -14px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #FF2D55;
+      color: #FFFFFF;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.15s;
+      z-index: 10;
+      box-shadow: 0 2px 8px rgba(255,45,85,0.35);
+    }
+
+    .card:hover .card-delete-btn {
+      opacity: 1;
+    }
+
+    .card-delete-btn:hover {
+      opacity: 1 !important;
+      transform: scale(1.1);
+    }
+
+    .confirm-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .confirm-dialog {
+      background: #FFFFFF;
+      border-radius: 16px;
+      padding: 32px 40px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+      text-align: center;
+      max-width: 340px;
+      width: 100%;
+    }
+
+    .confirm-dialog p {
+      font-size: 18px;
+      color: #000;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+
+    .confirm-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .confirm-delete-btn {
+      background: #FF2D55;
+      color: #FFFFFF;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 28px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .confirm-delete-btn:hover { opacity: 0.85; }
+
+    .confirm-cancel-btn {
+      background: #E5E5EA;
+      color: #333;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 28px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .confirm-cancel-btn:hover { opacity: 0.85; }
   </style>
 </head>
 <body>
@@ -307,6 +397,7 @@ const HTML_PAGE = `<!DOCTYPE html>
       let currentIndex = 0;
       let dirty = false;
       let saving = false;
+      let showDeleteConfirm = false;
 
       function render() {
         if (stories.length === 0) {
@@ -368,6 +459,7 @@ const HTML_PAGE = `<!DOCTYPE html>
             \${ghostHtml}
             <div class="card">
               <button class="card-add-btn" id="addStoryBtn" title="Add story before this one">+</button>
+              <button class="card-delete-btn" id="deleteStoryBtn" title="Delete this story"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M1 3.5h12"/><path d="M4.5 3.5v-2a.5.5 0 01.5-.5h4a.5.5 0 01.5.5v2"/><path d="M2.5 3.5l.75 8.5a.75.75 0 00.75.5h6a.75.75 0 00.75-.5l.75-8.5"/><path d="M5.5 6.5v4M8.5 6.5v4"/></svg></button>
               \${badgeHtml}
               <span class="story-counter">Story \${x} / \${y}</span>
               <div class="story-title" contenteditable="true" id="titleField" spellcheck="false">\${escapeHtml(title)}</div>
@@ -376,11 +468,45 @@ const HTML_PAGE = `<!DOCTYPE html>
               \${actionHtml}
             </div>
           </div>
+          \${showDeleteConfirm ? \`<div class="confirm-overlay" id="confirmOverlay">
+            <div class="confirm-dialog">
+              <p>Delete this story? No undo.</p>
+              <div class="confirm-actions">
+                <button class="confirm-delete-btn" id="confirmDeleteBtn">Delete</button>
+                <button class="confirm-cancel-btn" id="confirmCancelBtn">Cancel</button>
+              </div>
+            </div>
+          </div>\` : ''}
         \`;
 
         var addStoryBtn = document.getElementById('addStoryBtn');
         if (addStoryBtn) {
           addStoryBtn.addEventListener('click', addStoryBefore);
+        }
+
+        var deleteStoryBtn = document.getElementById('deleteStoryBtn');
+        if (deleteStoryBtn) {
+          deleteStoryBtn.addEventListener('click', function() {
+            showDeleteConfirm = true;
+            render();
+          });
+        }
+
+        if (showDeleteConfirm) {
+          var confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+          var confirmCancelBtn = document.getElementById('confirmCancelBtn');
+          if (confirmDeleteBtn) {
+            confirmDeleteBtn.addEventListener('click', function() {
+              showDeleteConfirm = false;
+              deleteStory();
+            });
+          }
+          if (confirmCancelBtn) {
+            confirmCancelBtn.addEventListener('click', function() {
+              showDeleteConfirm = false;
+              render();
+            });
+          }
         }
 
         document.querySelectorAll('.priority-btn').forEach(function(btn) {
@@ -462,6 +588,14 @@ const HTML_PAGE = `<!DOCTYPE html>
         const newStory = { title: 'New Item', description: 'Describe here\u2026', priority: null };
         stories.splice(currentIndex, 0, newStory);
         currentIndex++;
+        saveAndRender();
+      }
+
+      function deleteStory() {
+        stories.splice(currentIndex, 1);
+        if (currentIndex >= stories.length && currentIndex > 0) {
+          currentIndex = stories.length - 1;
+        }
         saveAndRender();
       }
 
