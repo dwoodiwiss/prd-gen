@@ -2,20 +2,38 @@
 
 A CLI tool for reviewing PRDs (Product Requirements Documents) one user story at a time. Assign priorities, edit stories, add or delete entries — all saved back to `prd.json`.
 
-![prd-gen](product-image.png)
+![prd-gen](https://raw.githubusercontent.com/dwoodiwiss/prd-reader/main/product-image.png)
 
 ## Prerequisites
 
 - [Node.js](https://nodejs.org/) v18 or later
-- npm
 
-## Install dependencies
+## Usage
+
+### Run with npx (recommended)
+
+No installation needed. Run this from the directory containing your `prd.json`:
+
+```bash
+npx prd-gen
+```
+
+The app starts a local server on [http://localhost:3000](http://localhost:3000) and opens the PRD review UI in your browser. Press `Ctrl+C` to stop.
+
+### Install globally
+
+```bash
+npm install -g prd-gen
+prd-gen
+```
+
+## Development
+
+### Install dependencies
 
 ```bash
 npm install
 ```
-
-## Usage
 
 ### Run in development mode
 
@@ -29,8 +47,6 @@ npm run dev
 npm run build
 npm start
 ```
-
-The app starts a local server on [http://localhost:3000](http://localhost:3000) and opens the PRD review UI in your browser.
 
 ## Data file
 
