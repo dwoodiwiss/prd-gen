@@ -20,8 +20,8 @@ const PRD_FILE = path.resolve(process.cwd(), 'prd.json');
 function readStories(): unknown[] {
   try {
     const content = fs.readFileSync(PRD_FILE, 'utf-8');
-    const data = JSON.parse(content) as { userStories?: unknown[] };
-    return data.userStories ?? (Array.isArray(data) ? (data as unknown[]) : []);
+    const data = JSON.parse(content) as { userStories?: unknown[]; stories?: unknown[] };
+    return data.userStories ?? data.stories ?? (Array.isArray(data) ? (data as unknown[]) : []);
   } catch {
     return [];
   }
