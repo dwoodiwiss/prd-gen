@@ -386,6 +386,65 @@ const HTML_PAGE = `<!DOCTYPE html>
     }
 
     .confirm-cancel-btn:hover { opacity: 0.85; }
+
+    .finish-btn {
+      background: #E5E5EA;
+      color: #AEAEB2;
+    }
+
+    .summary-state {
+      text-align: center;
+      padding: 32px 0 16px;
+    }
+
+    .summary-check {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: #FF2D55;
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      font-size: 32px;
+      font-weight: 700;
+    }
+
+    .summary-heading {
+      font-size: 40px;
+      font-weight: 700;
+      color: #000;
+      margin-bottom: 8px;
+    }
+
+    .summary-subheading {
+      font-size: 20px;
+      color: #555;
+      margin-bottom: 36px;
+    }
+
+    .summary-stats {
+      display: flex;
+      justify-content: center;
+      gap: 48px;
+      margin-bottom: 40px;
+    }
+
+    .summary-stat-value {
+      font-size: 40px;
+      font-weight: 700;
+      color: #FF2D55;
+    }
+
+    .summary-stat-label {
+      font-size: 14px;
+      color: #8E8E93;
+      font-weight: 500;
+      margin-top: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
   </style>
 </head>
 <body>
@@ -398,6 +457,9 @@ const HTML_PAGE = `<!DOCTYPE html>
       let dirty = false;
       let saving = false;
       let showDeleteConfirm = false;
+      let showSummary = false;
+      let createdCount = 0;
+      let deletedCount = 0;
 
       function render() {
         if (stories.length === 0) {
@@ -410,6 +472,37 @@ const HTML_PAGE = `<!DOCTYPE html>
             </div>
           \`;
           document.getElementById('addBtn').addEventListener('click', addStory);
+          return;
+        }
+
+        if (showSummary) {
+          app.innerHTML = \`
+            <div class="card-stack">
+              <div class="card">
+                <div class="summary-state">
+                  <div class="summary-check">&#10003;</div>
+                  <h2 class="summary-heading">Good job!</h2>
+                  <p class="summary-subheading">You've reviewed all stories.</p>
+                  <div class="summary-stats">
+                    <div class="summary-stat">
+                      <div class="summary-stat-value">\${stories.length}</div>
+                      <div class="summary-stat-label">Reviewed</div>
+                    </div>
+                    <div class="summary-stat">
+                      <div class="summary-stat-value">\${createdCount}</div>
+                      <div class="summary-stat-label">Created</div>
+                    </div>
+                    <div class="summary-stat">
+                      <div class="summary-stat-value">\${deletedCount}</div>
+                      <div class="summary-stat-label">Deleted</div>
+                    </div>
+                  </div>
+                  <button class="add-btn" id="addSummaryBtn">+ Add new story</button>
+                </div>
+              </div>
+            </div>
+          \`;
+          document.getElementById('addSummaryBtn').addEventListener('click', addStoryAtEnd);
           return;
         }
 
@@ -429,9 +522,10 @@ const HTML_PAGE = `<!DOCTYPE html>
           return \`<button class="priority-btn\${sel}" data-priority="\${n}">\${n}</button>\`;
         }).join('');
 
+        var isLastStory = currentIndex === stories.length - 1;
         const actionHtml = saving
           ? \`<div class="action-area"><span class="spinner-ring"></span></div>\`
-          : \`<div class="action-area"><button class="action-btn \${dirty ? 'save-btn' : 'next-btn'}" id="actionBtn">\${dirty ? 'Save' : 'Next story'}</button></div>\`;
+          : \`<div class="action-area"><button class="action-btn \${dirty ? 'save-btn' : (isLastStory ? 'finish-btn' : 'next-btn')}" id="actionBtn">\${dirty ? 'Save' : (isLastStory ? 'Finish' : 'Next story')}</button></div>\`;
 
         var remaining = stories.length - currentIndex - 1;
         var visibleGhosts, overflow;
@@ -563,8 +657,11 @@ const HTML_PAGE = `<!DOCTYPE html>
             actionBtn.addEventListener('click', function() {
               if (currentIndex < stories.length - 1) {
                 currentIndex++;
+                render();
+              } else {
+                showSummary = true;
+                render();
               }
-              render();
             });
           }
         }
@@ -581,6 +678,7 @@ const HTML_PAGE = `<!DOCTYPE html>
       function addStory() {
         const newStory = { title: 'New Item', description: 'Describe here\u2026', priority: null };
         stories.splice(currentIndex, 0, newStory);
+        createdCount++;
         saveAndRender();
       }
 
@@ -588,6 +686,16 @@ const HTML_PAGE = `<!DOCTYPE html>
         const newStory = { title: 'New Item', description: 'Describe here\u2026', priority: null };
         stories.splice(currentIndex, 0, newStory);
         currentIndex++;
+        createdCount++;
+        saveAndRender();
+      }
+
+      function addStoryAtEnd() {
+        const newStory = { title: 'New Item', description: 'Describe here\u2026', priority: null };
+        stories.push(newStory);
+        currentIndex = stories.length - 1;
+        showSummary = false;
+        createdCount++;
         saveAndRender();
       }
 
@@ -596,6 +704,7 @@ const HTML_PAGE = `<!DOCTYPE html>
         if (currentIndex >= stories.length && currentIndex > 0) {
           currentIndex = stories.length - 1;
         }
+        deletedCount++;
         saveAndRender();
       }
 
@@ -636,8 +745,8 @@ const HTML_PAGE = `<!DOCTYPE html>
         // All other shortcuts are ignored when editing text
         if (isEditingText()) return;
 
-        // No stories — nothing to act on
-        if (stories.length === 0) return;
+        // No stories or showing summary — nothing to act on
+        if (stories.length === 0 || showSummary) return;
 
         // Priority keys 1–9
         if (e.key >= '1' && e.key <= '9') {
